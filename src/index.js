@@ -1,26 +1,31 @@
-const express= require('express')
-require('./db/mongoose')
-const User= require('./models/user')
-const Task = require('./models/task')
-const userRouter= require('./routers/user')
-const taskRouter= require('./routers/task')
-const bcrypt= require('bcryptjs')
-const jwt= require('jsonwebtoken')
-
-const app = express()
-const port = process.env.PORT
+const express = require("express");
+const mongoose = require("./db/mongoose");
+const app = express();
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const userRouter = require("./routers/user");
 
 
+require("dotenv").config();
 
-app.use(express.json())
-app.use(userRouter)
-app.use(taskRouter)
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use(cookieParser());
+
+app.use(
+  cors({
+    origin: process.env.ORIGIN,
+    methods: ["GET", "POST", "DELETE", "PUT"],
+    credentials: true,
+  })
+);
+app.use("/api/v1", userRouter);
 
 
+const PORT = process.env.PORT||3001;
 
-
-
-app.listen(port, ()=>{
-    console.log('server is up on port '+ port)
-})
-
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

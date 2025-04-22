@@ -1,25 +1,29 @@
-const jwt= require('jsonwebtoken')
-const User= require('../models/user')
+const jwt = require("jsonwebtoken");
+const secretKey = process.env.SECRET_KEY; // Use your secret key here
 
-
-const auth= async (req, res, next)=>{
-try{
-
-    const token= req.header('Authorization').replace('Bearer ',"")
-    const decoded= jwt.verify(token, process.env.JWT_SECRET)
-    const user= await User.findOne({_id: decoded._id, 'tokens.token':token})
-
-    if(!user){
-        throw new Error()
+module.exports = function authenticationMiddleware(req, res, next) {
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res
+        .status(401)
+        .json({ message: "Authentication token is missing" });
     }
-    req.token= token
-    req.user= user
-    next()
 
-}catch(e){
-    res.status(401).send({error: 'please authenticate'})
-}
-
-}
-
-module.exports = auth 
+    // Verify the token
+    jwt.verify(token, secretKey, (error, payload) => {
+      if (error) {
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+      req.user = payload.user; // Attach user data to the request object
+      next();
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Internal server error during authentication",
+        error: error.message,
+      });
+  }
+};

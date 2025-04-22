@@ -4,6 +4,7 @@ const bcrypt= require('bcryptjs')
 const jwt= require('jsonwebtoken')
 const Task= require('./task')
 
+
 const userschema= new mongoose.Schema({
     name: {
     type: String,
@@ -55,7 +56,7 @@ tokens:[{
 
 userschema.virtual('tasks', {
     ref:'Task',
-    localField:'_id',
+    localField:'_id',//where the local data is stored
     foreignField:'owner'
 })
 
