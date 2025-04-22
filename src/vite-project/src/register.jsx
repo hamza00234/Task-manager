@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+
+// your routes...
+
 const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -19,8 +22,10 @@ const Register = () => {
     };
 
     try {
-        const res = await axios.post('http://localhost:3001/api/v1/register', formData);
-        console.log('Response status:', res.status); // Log the status code
+        await axios.post('http://localhost:3001/api/v1/register', formData, {
+            withCredentials: true, // include if you're using cookies or sessions
+          });
+                  console.log('Response status:', res.status); // Log the status code
       console.log('Response body:', res.data); // Log the response body
 
       if (res.status === 200) {
