@@ -3,68 +3,54 @@ const router= new express.Router()
 const auth= require('../middlewear/auth')
 const Task= require('../models/task')
 const { TopologyDescription } = require('mongodb')
-
+const mongoose = require('mongoose')
+const { ObjectId } = mongoose.Types;
 
 
 router.get('/test', (req,res)=>{
     res.send('testing')
 })
 
-router.post('/tasks', auth,  async (req,res)=>{
-
-    const task= new Task({
-       ...req.body,
-       owner: req.user._id
-
-    })
-    try{
-        await task.save()
-        res.status(201).send(task)
-    }catch(e){
-        res.status(400).send(e)
+router.post('/tasks', auth, async (req, res) => {
+    const { description,owner } = req.body;  // Only take description from the request body
+  
+    if (!description) {
+      return res.status(400).json({ message: 'Description is required' });
     }
-
-})
-
-
-router.get('/tasks', auth, async (req, res) => {
-    const match = {};
-    const options = {};
-
-    if (req.query.completed) {
-        match.completed = req.query.completed === 'true';
-    }
-
-    if (req.query.limit) {
-        options.limit = parseInt(req.query.limit);
-    }
-
-    if (req.query.skip) {
-        options.skip = parseInt(req.query.skip);
-    }
-
-    if (req.query.sortBy) {
-        const parts = req.query.sortBy.split(':');
-        options.sort = {
-            [parts[0]]: parts[1] === 'desc' ? -1 : 1
-        };
-    }
-
+  
     try {
-        const tasks = await Task.find({ owner: req.user._id, ...match }, null, options)
-                                .sort(options.sort)
-                                .limit(options.limit)
-                                .skip(options.skip);
-        res.send(tasks);
+      const newTask = new Task({
+        description,
+        owner: owner   // Automatically set the owner to the logged-in user
+      });
+  
+      await newTask.save();
+  
+      res.status(201).json(newTask);
     } catch (e) {
-        res.status(500).send();
+      console.error('Error creating task:', e);
+      res.status(500).send({ message: 'Server error creating task' });
     }
-});
-
-
-
-
-
+  });
+  router.get('/tasks', auth, async (req, res) => {
+    try {
+    
+      const tasks = await Task.find({ owner: new ObjectId(req.user.userId) });
+  
+      // Log the tasks fetched from the database
+      console.log('Fetched tasks:', tasks);
+  
+      if (tasks.length === 0) {
+        console.log('No tasks found for this user.');
+      }
+  
+      res.send(tasks);
+    } catch (e) {
+      console.error('Error during task fetch:', e);  // Log detailed error information
+      res.status(500).send({ message: 'Error fetching tasks', error: e.message });
+    }
+  });
+  
 
 
 router.get('/tasks/:id', auth, async (req,res)=>{
@@ -105,13 +91,13 @@ router.patch('/tasks/:id', auth, async (req,res)=>{
 
 router.delete('/tasks/:id', auth, async (req,res)=>{
     try{
-        const task= await Task.findOneAndDelete({_id: req.params.id, owner: req.user._id})
+        const task= await Task.findOneAndDelete({_id: req.params.id})
     if(!task){
-     return   res.send(404).send()
+     return   res.sendStatus(404)
     }
     res.send(task)
         }catch(e){
-            res.send(500).send(e)
+            res.status(500).send(e)
 }
 })
 

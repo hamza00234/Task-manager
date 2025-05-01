@@ -4,6 +4,7 @@ const bcrypt= require('bcryptjs')
 const jwt= require('jsonwebtoken')
 const Task= require('./task')
 
+
 const userschema= new mongoose.Schema({
     name: {
     type: String,
@@ -55,7 +56,7 @@ tokens:[{
 
 userschema.virtual('tasks', {
     ref:'Task',
-    localField:'_id',
+    localField:'_id',//where the local data is stored
     foreignField:'owner'
 })
 
@@ -98,16 +99,16 @@ userschema.statics.findByCredentials= async(email, password)=>{
 
 
 
-userschema.pre('save',async function(next){
-    const user= this
+// userschema.pre('save',async function(next){
+//     const user= this
 
-    if(user.isModified('password')){
-        user.password= await bcrypt.hash(user.password,8)
+//     if(user.isModified('password')){
+//         user.password= await bcrypt.hash(user.password,8)
 
-    }
+//     }
 
-    next()
-})
+//     next()
+// })
 
 
 
