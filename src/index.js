@@ -3,28 +3,33 @@ const mongoose = require("./db/mongoose");
 const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const dotenv = require("dotenv");
+//const dotenv = require("dotenv");
 const userRouter = require("./routers/user");
+const taskRouter = require("./routers/task");
 
 
 require("dotenv").config();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
-app.use(cookieParser());
+
 
 app.use(
   cors({
     origin: process.env.ORIGIN,
-    methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
+    methods: ["GET", "POST", "DELETE", "PUT"],
+
   })
 );
+
+app.use(express.json());
+app.use(cookieParser());
 app.use("/api/v1", userRouter);
+app.use("/api/v1",taskRouter);
 
 
-const PORT = process.env.PORT||3001;
+
+const PORT = 5000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

@@ -5,7 +5,8 @@ const auth= require('../middlewear/auth')
 const {sendwelcome,senddelete}= require('../emails/account')
 const bcrypt=require('bcrypt')
 const jwt= require('jsonwebtoken')
-const secretKey = process.env.SECRET_KEY; // Use your secret key here
+const secretKey = process.env.JWT_SECRET||'thisismykey'; // Use your secret key here
+//require("dotenv").config();
 
 router.get('/test', (req,res)=>{
     res.send('testing')
@@ -20,8 +21,10 @@ router.post('/register', async (req, res)=>{
         }
         const user=new User(req.body)
         const hashedPassword=await bcrypt.hash(user.password,8)
+       console.log(user.password)
         user.password=hashedPassword
         await user.save()
+        console.log(user.password)
         return res.status(201).send("successfully registered")
         
     }catch(e){
@@ -36,21 +39,24 @@ router.post('/login', async(req, res) => {
         const { email, password } = req.body;
   
         const user = await User.findOne({ email });
+        console.log(password)
         if (!user) {
           return res.status(404).send("email not found");
         }
-        console.log(user);
+        //console.log(user);
+        console.log(user.password);
         const passwordMatch = await bcrypt.compare(password, user.password);
+        console.log(passwordMatch)
         if (!passwordMatch) {
           return res.status(405).send("incorrect password");
         }
-  
+        console.log(secretKey)
         const currentDateTime = new Date();
         const expiresAt = new Date(+currentDateTime + 1800000);
   
         // Generate a JWT token
         const token = jwt.sign(
-          { user: { userId: user._id, role: user.role } },
+          { user: { userId: user._id} },
           secretKey,
           {
             expiresIn: "1d",
@@ -62,12 +68,12 @@ router.post('/login', async(req, res) => {
             expires: expiresAt,
             httpOnly: true,
             secure: true, // Set to true if using HTTPS
-            SameSite: "none",
+            sameSite: "none",
           })
           .status(200)
           .send(user);
       } catch (e) {
-        res.status(500).send(e);
+        res.status(500).send(e.message);
       }
 })
 
@@ -97,7 +103,21 @@ router.post('/logoutAll', auth, async (req,res)=>{
 
 
 router.get('/me', auth, async (req,res)=>{
-     res.send(req.user)
+  try {
+    console.log('Incoming cookies:', req.cookies);
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ message: 'No token in cookies' });
+  }
+  const decoded = jwt.verify(token, secretKey);
+  const user = await User.findById(decoded.user.userId).select('-password'); // exclude password
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  res.json(user);
+} catch (error) {
+    console.error('Error fetching user details:', error);
+    res.status(500).json({ message: 'Internal server error' });
+}
   
 })
 
