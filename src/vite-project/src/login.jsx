@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Login = () => {
-  const [email, setEmail]     = useState('');
-  const [password, setPassword] = useState('');
-  const navigate               = useNavigate();
+  const [email, setEmail]= useState('');
+  const [password, setPassword]= useState('');
+  const navigate= useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,7 +20,7 @@ const Login = () => {
       console.log('Login response:', res.status, res.data);
       if (res.status === 200) {
         alert('Login successful!');
-        navigate('/api/v1/dashboard');     // or wherever your MainPage lives
+        navigate('/api/v1/dashboard');     
       } else {
         alert('Login failed. Please check your credentials.');
       }
