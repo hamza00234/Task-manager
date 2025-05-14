@@ -1,11 +1,11 @@
 import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css';
-import axios from 'axios';  // Make sure axios is imported
-import Login from './login'; // make sure this path is correct
-import Register from './register'; // make sure this path is correct
-import Test from './dumy'; // make sure this path is correct
-import Main from './mypage';  // Make sure this path is correct
+import axios from 'axios';  
+import Login from './login'; 
+import Register from './register'; 
+import Test from './dumy'; 
+import Main from './mypage';  
 
 // Set axios default withCredentials globally
 axios.defaults.withCredentials = true;
